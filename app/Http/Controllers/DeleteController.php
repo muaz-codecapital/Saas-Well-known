@@ -94,16 +94,31 @@ class DeleteController extends BaseController
                     ->first();
 
                 if ($staff) {
-                    if(!$workspace->owner_id && ($staff->id != $workspace->owner_id) ){
-                        if ($staff->id === $this->user->id) {
-                            abort(401);
-                        }
-
-                        $staff->delete();
-
+                    // Check if this is the workspace owner
+                    if($workspace->owner_id && $staff->id == $workspace->owner_id) {
+                        session()->flash("error", "Cannot delete the workspace owner.");
                         return redirect("/staff");
                     }
+
+                    // Check if this user is the only super admin in the workspace
+                    if ($staff->super_admin && User::where('workspace_id', $this->user->workspace_id)->where('super_admin', true)->count() <= 1) {
+                        session()->flash("error", "Cannot delete the last super administrator in this workspace.");
+                        return redirect("/staff");
+                    }
+
+                    // Prevent self-deletion
+                    if ($staff->id === $this->user->id) {
+                        session()->flash("error", "You cannot delete your own account.");
+                        return redirect("/staff");
+                    }
+
+                    $staff->delete();
+                    session()->flash("success", "User deleted successfully.");
+                    return redirect("/staff");
                 }
+
+                session()->flash("error", "User not found.");
+                return redirect("/staff");
 
                 break;
 

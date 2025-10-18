@@ -2,11 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\Setting;
 use App\Models\User;
+use App\Models\Setting;
 use App\Models\Workspace;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Database\Seeders\SubscriptionPlanSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,36 +18,39 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $workspace = new Workspace();
-        $workspace->name = 'CloudOnex';
-        $workspace->save();
+        // $workspace = new Workspace();
+        // $workspace->name = 'CloudOnex';
+        // $workspace->save();
 
-        $user = User::first();
-        if(!$user)
-        {
-            $user = new User();
-            $user->workspace_id = $workspace->id;
-            $user->first_name = 'Jason';
-            $user->last_name = 'M';
-            $user->email = 'demo@cloudonex.com';
-            $user->password = Hash::make('123456');
-            $user->super_admin = 1;
-            $user->save();
+        // $user = User::first();
+        // if(!$user)
+        // {
+        //     $user = new User();
+        //     $user->workspace_id = $workspace->id;
+        //     $user->first_name = 'Jason';
+        //     $user->last_name = 'M';
+        //     $user->email = 'demo@cloudonex.com';
+        //     $user->password = Hash::make('123456');
+        //     $user->super_admin = 1;
+        //     $user->save();
 
-        }
+        // }
 
-        $data = [
-            'company_name'=> 'CloudOnex'
-        ];
+        // $data = [
+        //     'company_name'=> 'CloudOnex'
+        // ];
 
-        foreach($data as $key=>$value){
+        // foreach($data as $key=>$value){
 
-            $setting =  new Setting();
+        //     $setting =  new Setting();
 
-            $setting->key = $key;
-            $setting->workspace_id = $workspace->id;
-            $setting->value = $value;
-            $setting->save();
-        }
+        //     $setting->key = $key;
+        //     $setting->workspace_id = $workspace->id;
+        //     $setting->value = $value;
+        //     $setting->save();
+        // }
+        $this->call([
+            SubscriptionPlanSeeder::class,
+        ]);
     }
 }

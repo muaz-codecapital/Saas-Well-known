@@ -1,4 +1,10 @@
 @extends('layouts.primary')
+
+@section('head')
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@endsection
+
 @section('content')
     <div class="card bg-purple-light mb-3 mt-4">
         <div class="card-header bg-purple-light pb-0 p-3">
@@ -71,8 +77,10 @@
 
                                             @if(!$workspace->owner_id || $staff->id != $workspace->owner_id )
                                                 <a class="btn btn-link text-danger text-gradient px-3 mb-0"
-                                                   href="/delete/staff/{{$staff->id}}"><i
-                                                        class="far fa-trash-alt me-2"></i>{{__('Delete')}}</a>
+                                                   href="javascript:void(0)"
+                                                   onclick="confirmDeleteStaff({{$staff->id}}, '{{$staff->first_name}} {{$staff->last_name}}', '{{$staff->email}}')">
+                                                    <i class="far fa-trash-alt me-2"></i>{{__('Delete')}}
+                                                </a>
                                             @endif
 
 
@@ -93,15 +101,87 @@
     </div>
 
 @endsection
+
 @section('script')
     <script>
         "use strict";
         $(document).ready(function () {
-            $('#cloudonex_table').DataTable(
-            );
-
+            $('#cloudonex_table').DataTable();
         });
+
+        function confirmDeleteStaff(staffId, staffName, staffEmail) {
+            Swal.fire({
+                title: '{{__("Delete User")}}',
+                html: `
+                    <div class="text-start">
+                        <p class="mb-3">{{__("Are you sure you want to delete this user?")}}</p>
+                        <div class="alert alert-warning" style="color: #252f40 !important;">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>{{__("Warning:")}}</strong> {{__("This action cannot be undone. All user data will be permanently deleted.")}}
+                        </div>
+                        <div class="mb-3">
+                            <strong>{{__("User:")}}</strong> ${staffName}<br>
+                            <strong>{{__("Email:")}}</strong> ${staffEmail}
+                        </div>
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-trash me-1"></i>{{__("Yes, Delete User")}}',
+                cancelButtonText: '<i class="fas fa-times me-1"></i>{{__("Cancel")}}',
+                reverseButtons: true,
+                focusCancel: true,
+                customClass: {
+                    popup: 'swal2-popup-custom',
+                    title: 'swal2-title-custom',
+                    content: 'swal2-content-custom'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: '{{__("Deleting...")}}',
+                        text: '{{__("Please wait while we delete the user.")}}',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        willOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Redirect to delete URL
+                    window.location.href = `/delete/staff/${staffId}`;
+                }
+            });
+        }
     </script>
+
+    <style>
+    .swal2-popup-custom {
+        border-radius: 12px !important;
+    }
+
+    .swal2-title-custom {
+        color: #dc3545 !important;
+        font-weight: 600 !important;
+    }
+
+    .swal2-content-custom {
+        text-align: left !important;
+    }
+
+    .swal2-actions .swal2-confirm {
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+    }
+
+    .swal2-actions .swal2-cancel {
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+    }
+    </style>
 @endsection
 
 

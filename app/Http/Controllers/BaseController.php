@@ -27,11 +27,13 @@ class BaseController extends Controller
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
 
-            $this->workspace = Workspace::find($this->user->workspace_id);
+            $this->workspace = $this->user->workspace_id ? Workspace::find($this->user->workspace_id) : null;
+
+            $workspaceId = $this->workspace ? $this->workspace->id : $this->user->workspace_id;
 
             $settings_data = Setting::where(
                 "workspace_id",
-                $this->user->workspace_id
+                $workspaceId
             )->get();
             $settings = [];
 
@@ -55,7 +57,7 @@ class BaseController extends Controller
 
             $this->modules = null;
 
-            if ($this->workspace->plan_id) {
+            if ($this->workspace && $this->workspace->plan_id) {
                 $plan = SubscriptionPlan::find($this->workspace->plan_id);
                 if($plan)
                 {

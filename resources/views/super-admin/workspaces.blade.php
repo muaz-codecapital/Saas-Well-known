@@ -52,10 +52,10 @@
                                     </td>
                                     <td class="align-middle text-sm">
                                         @if($workspace->id !== $user->workspace_id)
-                                            @if($workspace->subscribed)
-                                                <span class="badge badge-sm bg-success-light text-success">{{__('Subscribed')}}</span>
+                                            @if(\App\Models\Workspace::hasActiveSubscription($workspace))
+                                                <span class="badge badge-sm bg-success-light text-success">{{__('Active Subscription')}}</span>
                                             @else
-                                                <span class="badge badge-sm bg-pink-light text-danger">{{__('Not Subscribed')}}</span>
+                                                <span class="badge badge-sm bg-pink-light text-danger">{{__('No Subscription')}}</span>
                                             @endif
                                         @endif
 

@@ -12,6 +12,43 @@
         <link rel="icon" type="image/png" href="{{PUBLIC_DIR}}/uploads/{{$super_settings['favicon']}}">
     @endif
     <link id="pagestyle" href="{{PUBLIC_DIR}}/css/app.css" rel="stylesheet"/>
+
+<style>
+    .form-control {
+        background-color: white !important;
+        border: 1px solid #e9ecef;
+        border-radius: 0.375rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: #495057;
+        text-indent: 0;
+    }
+    .input-group-text {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-right: none;
+        color: #4f55da;
+        min-width: 45px;
+        justify-content: center;
+        display: flex;
+        align-items: center;
+    }
+    .input-group .form-control {
+        border-left: none;
+        padding-left: 8px !important;
+    }
+    .input-group:focus-within .input-group-text {
+        border-color: #4f55da;
+        background-color: #f8f9fa;
+    }
+    .input-group .form-control::placeholder {
+        color: #6c757d;
+        opacity: 1;
+    }
+    .text-purple { color: #4f55da !important; }
+</style>
+
     @if(!empty($super_settings['config_recaptcha_in_admin_login']))
         <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     @endif
@@ -52,14 +89,25 @@
                                     </div>
                                 @endif
                                 <label>{{__('Email')}}</label>
-                                <div class="mb-3">
-                                    <input type="email" name="email" class="form-control" placeholder="Email"
-                                           aria-label="Email" aria-describedby="email-addon">
+                                <div class="mb-3 input-group">
+                                    <span class="input-group-text">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail text-purple">
+                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                            <polyline points="22,6 12,13 2,6"></polyline>
+                                        </svg>
+                                    </span>
+                                    <input type="email" name="email" class="form-control" placeholder="Email" value="{{old('email')}}" aria-label="Email">
                                 </div>
                                 <label>{{__('Password')}}</label>
-                                <div class="mb-3">
-                                    <input type="password" name="password" class="form-control" placeholder="Password"
-                                           aria-label="Password" aria-describedby="password-addon">
+                                <div class="mb-3 input-group">
+                                    <span class="input-group-text">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-lock text-purple">
+                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                            <circle cx="12" cy="16" r="1"></circle>
+                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                        </svg>
+                                    </span>
+                                    <input type="password" name="password" class="form-control" placeholder="Password" aria-label="Password">
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="rememberMe" checked="">

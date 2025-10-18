@@ -132,7 +132,7 @@
 
 
 
-    @if ($user->super_admin)
+    {{-- @if ($user->super_admin)
 
 
 
@@ -292,7 +292,7 @@
 
             </div>
         </div>
-    @endif
+    @endif --}}
 
 
 

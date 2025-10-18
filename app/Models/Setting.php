@@ -11,8 +11,9 @@ class Setting extends Model
 
     public static function updateSettings($workspace_id,$key,$value)
     {
-
-        $setting = self::where('key',$key)->first();
+        $setting = self::where('workspace_id', $workspace_id)
+            ->where('key', $key)
+            ->first();
 
         if($setting)
         {

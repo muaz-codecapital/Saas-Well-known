@@ -431,13 +431,7 @@ function navbarColorOnResize() {
 }
 
 $(function () {
-    if(document.getElementById('main_content')){
-        let $main_content = $("#main_content");
-        if(typeof ltoken === 'undefined')
-        {
-            $main_content.prepend(atob('PGRpdiBjbGFzcz0iYWxlcnQgYWxlcnQtZGFuZ2VyIj48YSBjbGFzcz0idGV4dC13aGl0ZSIgaHJlZj0iL2FjdGl2YXRlIj5QbGVhc2UgYWN0aXZhdGUgeW91ciBwcm9kdWN0LiBDbGljayBoZXJlIHRvIGFjdGl2YXRlLjwvYT48L2Rpdj4='));
-        }
-    }
+    // Activation banner disabled
 });
 
 // Deactivate sidenav type buttons on resize and small screens

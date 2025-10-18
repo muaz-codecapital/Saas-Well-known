@@ -61,7 +61,7 @@
                                         </div>
 
                                     </div>
-                                    <div class="row mt-3">
+                                    {{-- <div class="row mt-3">
                                         <div class="col-12 col-sm-6 mt-3 mt-sm-0">
                                             <label>{{__('Mobile Phone')}}</label>
                                             <input name="mobile_number" class="multisteps-form__input form-control"
@@ -74,7 +74,7 @@
                                         </div>
 
 
-                                    </div>
+                                    </div> --}}
 
 
                                 </div>

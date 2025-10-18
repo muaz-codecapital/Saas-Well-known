@@ -9,6 +9,7 @@ use App\Models\PaymentGateway;
 use App\Models\PrivacyPolicy;
 use App\Models\Setting;
 use App\Models\SubscriptionPlan;
+use App\Models\SubscriptionPlanFeature;
 use App\Models\Terms;
 use App\Models\User;
 use App\Models\Workspace;
@@ -127,29 +128,41 @@ class SuperAdminController extends SuperAdminBaseController
 
         $workspace->name = $request->name;
         $workspace->plan_id = $request->plan_id;
-        if($request->plan_id)
-        {
-            $workspace->subscribed = 1;
-        }
-        else{
-            $workspace->subscribed = 0;
-        }
+
+        // Check if next_renewal_date is provided and is in the future
         if($request->next_renewal_date)
         {
+            $renewalDate = \Carbon\Carbon::parse($request->next_renewal_date);
+            if($renewalDate->isFuture())
+            {
+                // Future expiration date means active subscription
+                $workspace->active = 1;
+                $workspace->subscribed = 1;
+                $workspace->subscription_start_date = \Carbon\Carbon::now();
+            }
+            else
+            {
+                // Past or current date means no active subscription
+                $workspace->active = 1;
+                $workspace->subscribed = 0;
+            }
             $workspace->next_renewal_date = $request->next_renewal_date;
         }
+        else
+        {
+            // No expiration date means no subscription
+            $workspace->active = 1;
+            $workspace->subscribed = 0;
+            $workspace->next_renewal_date = null;
+            $workspace->subscription_start_date = null;
+        }
+
         $workspace->save();
 
         return redirect("/workspaces");
     }
 
-    public function activateLicense()
-    {
-
-        return \view("super-admin.activate-license", [
-            "selected_navigation" => "sdashboard",
-        ]);
-    }
+    // Activation page disabled
 
 
     public function editWorkspace(Request $request)
@@ -232,7 +245,7 @@ class SuperAdminController extends SuperAdminBaseController
 
     public function saasPlans()
     {
-        $plans = SubscriptionPlan::all();
+        $plans = SubscriptionPlan::ordered()->get();
 
         return \view("super-admin.plans", [
             "selected_navigation" => "saas-plans",
@@ -253,16 +266,18 @@ class SuperAdminController extends SuperAdminBaseController
                 {
                     $plan_modules = json_decode($plan->modules);
                 }
-                if($plan->features)
-                {
-                    $features = json_decode($plan->features);
-                }
-
+                
+                // Load features from normalized table
+                $features = $plan->features ? $plan->features->pluck('description')->toArray() : [];
             }
         }
 
 
         $available_modules = SubscriptionPlan::availableModules();
+        $available_plan_types = SubscriptionPlan::availablePlanTypes();
+        $available_color_schemes = SubscriptionPlan::availableColorSchemes();
+        $available_cta_types = SubscriptionPlan::availableCtaTypes();
+        $available_icons = SubscriptionPlan::availableIcons();
 
         return \view("super-admin.create-plan", [
             "selected_navigation" => "saas-plans",
@@ -270,21 +285,57 @@ class SuperAdminController extends SuperAdminBaseController
             "available_modules" => $available_modules,
             "plan_modules" => $plan_modules,
             "features" =>  $features,
+            "available_plan_types" => $available_plan_types,
+            "available_color_schemes" => $available_color_schemes,
+            "available_cta_types" => $available_cta_types,
+            "available_icons" => $available_icons,
         ]);
     }
     public function subscriptionPlanPost(Request $request)
     {
-        $request->validate([
-            "name" => "required|max:150",
-            "id" => "nullable|integer",
-            "features" => "nullable|array",
-            "maximum_allowed_users" => "required|integer",
-            "price_yearly" => "required|numeric",
-            "price_monthly" => "required|numeric",
-            "paypal_plan_id" => "nullable|string",
-            "max_file_upload_size" => "nullable|integer",
-            "file_space_limit" => "nullable|integer",
-        ]);
+        try {
+            $request->validate([
+                "name" => "required|max:150",
+                "id" => "nullable|integer",
+                "features" => "nullable|array",
+                "plan_type" => "nullable|string|in:standard,premium,enterprise,incubation",
+                "icon" => "nullable|string",
+                "badge_text" => "nullable|string|max:100",
+                "badge_color" => "nullable|string|in:purple,blue,green,orange,red",
+                "subtitle" => "nullable|string|max:500",
+                "price_yearly" => "required|numeric",
+                "price_monthly" => "required|numeric",
+                "color_scheme" => "nullable|string|in:purple,blue,green,orange,red",
+                "maximum_allowed_users" => "required|integer|min:1",
+                "sort_order" => "nullable|integer|min:0",
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
+        }
+
+        // Security: Limit to maximum 2 plans
+        $existingPlansCount = SubscriptionPlan::count();
+        $isEditing = $request->id ? true : false;
+        
+        if (!$isEditing && $existingPlansCount >= 2) {
+            $errorMessage = 'Maximum of 2 subscription plans allowed. Please edit existing plans instead.';
+            
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage
+                ], 422);
+            }
+            
+            return back()->with('error', $errorMessage);
+        }
 
         $plan = false;
 
@@ -297,35 +348,41 @@ class SuperAdminController extends SuperAdminBaseController
         }
 
         $plan->name = $request->name;
+        $plan->plan_type = $request->plan_type ?? 'standard';
+        $plan->icon = $request->icon;
+        $plan->badge_text = $request->badge_text;
+        $plan->badge_color = $request->badge_color ?? 'purple';
+        $plan->subtitle = $request->subtitle;
+        $plan->color_scheme = $request->color_scheme ?? 'purple';
 
         $plan->price_yearly = $request->price_yearly;
         $plan->price_monthly = $request->price_monthly;
-        $plan->maximum_allowed_users = $request->maximum_allowed_users;
-        $plan->max_file_upload_size = $request->max_file_upload_size;
-        $plan->file_space_limit = $request->file_space_limit;
-        $plan->paypal_plan_id = $request->paypal_plan_id;
-        $plan->description = clean($request->description);
+        $plan->sort_order = $request->sort_order ?? 0; // Use form value or default to 0
+        $plan->maximum_allowed_users = $request->maximum_allowed_users; // Use form value
+        $plan->max_file_upload_size = 10240; // Default value
+        $plan->file_space_limit = 1000; // Default value
+        $plan->active = true; // Default value
+        $plan->featured = false; // Default value
 
-        if($request->has('paystack_monthly_plan_id'))
-        {
-            $plan->paystack_monthly_plan_id = $request->paystack_monthly_plan_id;
-        }
-
-        if($request->has('paystack_yearly_plan_id'))
-        {
-            $plan->paystack_yearly_plan_id = $request->paystack_yearly_plan_id;
-        }
-
-        $features = [];
-
-        foreach ($request->features as $feature) {
-            if (!empty($feature)) {
-                $features[] = $feature;
+        // Handle features - will be saved after plan is saved
+        $feature_icons = $request->feature_icons ?? [];
+        $feature_headings = $request->feature_headings ?? [];
+        $feature_descriptions = $request->features ?? [];
+        
+        $features_data = [];
+        for ($i = 0; $i < count($feature_descriptions); $i++) {
+            $description = $feature_descriptions[$i] ?? '';
+            $icon = $feature_icons[$i] ?? 'feather-check-circle';
+            $heading = $feature_headings[$i] ?? '';
+            
+            if (!empty($description) && !empty($heading)) {
+                $features_data[] = [
+                    'icon' => $icon,
+                    'heading' => $heading,
+                    'description' => $description,
+                    'sort_order' => $i
+                ];
             }
-        }
-
-        if (!empty($features)) {
-            $plan->features = json_encode($features);
         }
 
         $modules = null;
@@ -342,9 +399,40 @@ class SuperAdminController extends SuperAdminBaseController
             $plan->modules = json_encode($modules);
         }
 
-        $plan->save();
+        try {
+            $plan->save();
 
-        return redirect("/subscription-plans");
+            // Save features in normalized table
+            if (!empty($features_data)) {
+                // Delete existing features
+                $plan->features()->delete();
+                
+                // Create new features
+                foreach ($features_data as $feature_data) {
+                    $plan->features()->create($feature_data);
+                }
+            }
+
+            // Return JSON response for AJAX requests
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('Plan saved successfully!'),
+                    'plan' => $plan
+                ]);
+            }
+
+            return redirect("/subscription-plans");
+        } catch (\Exception $e) {
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('An error occurred while saving the plan: ') . $e->getMessage()
+                ], 500);
+            }
+            
+            return back()->with('error', __('An error occurred while saving the plan: ') . $e->getMessage());
+        }
     }
 
     public function userProfile(Request $request)
@@ -419,16 +507,8 @@ class SuperAdminController extends SuperAdminBaseController
 
     public function paymentGateways()
     {
-        $users = User::all();
-        $payment_gateways = PaymentGateway::all()
-            ->keyBy("api_name")
-            ->all();
-
-        return \view("super-admin.payment-gateways", [
-            "selected_navigation" => "payment-gateways",
-            "users" => $users,
-            "payment_gateways" => $payment_gateways,
-        ]);
+        // Redirect directly to Stripe configuration
+        return redirect("/configure-payment-gateway?api_name=stripe");
     }
 
     public function configurePaymentGateway(Request $request)
@@ -518,9 +598,20 @@ class SuperAdminController extends SuperAdminBaseController
                 return redirect("/users");
             }
 
+            // Check if this user is the only super admin in the entire system
+            if ($user->super_admin && User::where('super_admin', true)->count() <= 1) {
+                return redirect("/users")->withErrors([
+                    'cannot_delete_last_admin' => __('Cannot delete the last super administrator.')
+                ]);
+            }
+
             $user->delete();
-            return redirect("/users");
+            return redirect("/users")->with('success', __('User deleted successfully.'));
         }
+
+        return redirect("/users")->withErrors([
+            'user_not_found' => __('User not found.')
+        ]);
     }
 
 
@@ -1218,5 +1309,6 @@ class SuperAdminController extends SuperAdminBaseController
 
 
 }
+
 
 

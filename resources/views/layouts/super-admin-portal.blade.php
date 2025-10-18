@@ -14,14 +14,14 @@
     </title>
 
     <link id="pagestyle" href="{{PUBLIC_DIR}}/css/app.css?v=487" rel="stylesheet"/>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
         window.public_dir = "{{PUBLIC_DIR}}";
         window.business_name = "{{config('app.name')}}";
         window.csrf_token = "{{csrf_token()}}";
-        @if(!empty($settings['ltoken']))
-            window.ltoken = "{{$settings['ltoken']}}";
-        @endif
+        // Activation token disabled
     </script>
 
     @yield('head')
@@ -34,6 +34,7 @@
         <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute right-0 top-0 d-none d-xl-none"
            aria-hidden="true" id="iconSidenav"></i>
         <a class="navbar-brand m-0" href="{{config('app.url')}}/super-admin/dashboard">
+            {{-- @dd($super_settings) --}}
             @if(!empty($settings['logo']))
                 <img src="{{PUBLIC_DIR}}/uploads/{{$settings['logo']}}" class="navbar-brand-img h-100" alt="...">
             @else
@@ -129,7 +130,7 @@
                         <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                         <line x1="1" y1="10" x2="23" y2="10"></line>
                     </svg>
-                    <span class="nav-link-text ms-3">{{__('Payment Gateways')}}</span>
+                    <span class="nav-link-text ms-3">{{__('Payment Settings')}}</span>
                 </a>
             </li>
 
@@ -301,6 +302,9 @@
         Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
     }
 </script>
+
+<!-- Font Awesome icons are loaded via CSS, no JavaScript needed -->
+
 @yield('script')
 </body>
 </html>

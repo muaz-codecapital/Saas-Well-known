@@ -66,13 +66,6 @@
 
 
 
-                               @if($app_workspace->id !== $user->workspace_id)
-                                   @if($app_workspace->active)
-                                       <a href="/view-workspace?id=2&action=suspend" class="btn btn-danger mt-4" >{{__('Suspend Workspace')}}</a>
-                                       @else
-                                       <a href="/view-workspace?id=2&action=activate" class="btn btn-success mt-4" >{{__('Activate Workspace')}}</a>
-                                   @endif
-                                 @endif
 
                            </div>
                        </div>

@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Mail\PasswordReset;
 use App\Mail\WelcomeEmail;
 use App\Models\Setting;
+use App\Models\StartupDetail;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
@@ -37,7 +40,7 @@ class AuthController extends Controller
 
             $this->super_settings = $super_settings;
             $language = $super_settings['language'] ?? 'en';
-            \App::setLocale($language);
+            App::setLocale($language);
             View::share("super_settings", $super_settings);
             return $next($request);
         });
@@ -86,7 +89,10 @@ class AuthController extends Controller
 
     public function signup()
     {
-        return \view("auth.signup");
+        $plans = SubscriptionPlan::active()->ordered()->get();
+        return \view("auth.signup", [
+            "plans" => $plans
+        ]);
     }
 
     public function forgotPassword()
@@ -295,14 +301,43 @@ class AuthController extends Controller
 
     public function signupPost(Request $request)
     {
-        $request->validate([
+        // Validate based on plan type
+        $selectedPlan = SubscriptionPlan::find($request->selected_plan);
+        $isContactPlan = $selectedPlan && $selectedPlan->cta_type === 'contact';
+        
+        $validationRules = [
             "email" => ["required", "email"],
-            "first_name" => ["required"],
-            "last_name" => ["required"],
-            "password" => ["required"],
+            "first_name" => ["required", "string", "max:255"],
+            "surname" => ["required", "string", "max:255"],
+            "password" => ["required", "string", "min:8"],
             'selected_plan' => ['required'],
+            'user_type' => ['required'],
+            'company_name' => ['required', 'string', 'max:255'],
+            'industry' => ['required'],
+            'current_stage' => ['required'],
+            'team_size' => ['required'],
+        ];
+        
+        // Add duration validation for non-contact plans
+        if (!$isContactPlan) {
+            $validationRules['selected_duration'] = ['required', 'in:monthly,yearly'];
+        }
+        
+        $request->validate($validationRules, [
+            'email.required' => 'Email address is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'first_name.required' => 'First name is required.',
+            'surname.required' => 'Surname is required.',
+            'password.required' => 'Password is required.',
+            'password.min' => 'Password must be at least 8 characters.',
+            'user_type.required' => 'Please select your role.',
+            'company_name.required' => 'Company name is required.',
+            'industry.required' => 'Please select an industry.',
+            'current_stage.required' => 'Please select current stage.',
+            'team_size.required' => 'Please select team size.',
+            'selected_duration.required' => 'Please select billing duration.',
+            'selected_duration.in' => 'Invalid duration selected.',
         ]);
-        dd($request->all());
         if(!empty($this->super_settings['config_recaptcha_in_user_signup']))
         {
             $recaptcha = $request->get('g-recaptcha-response');
@@ -322,34 +357,54 @@ class AuthController extends Controller
 
         if ($check) {
             return back()->withErrors([
-                "email" => "User already exist",
+                "email" => "User with this email already exists. Please use a different email or try logging in.",
             ]);
         }
 
+        // Handle flow based on plan type
+        if ($isContactPlan) {
+            // For contact plans: Save user first, then redirect
+            return $this->handleContactPlanRegistration($request, $selectedPlan);
+        } else {
+            // For paid plans: Process payment first, then save user
+            return $this->handlePaidPlanRegistration($request, $selectedPlan);
+        }
+    }
+
+    private function handleContactPlanRegistration($request, $selectedPlan)
+    {
+        // Create workspace
         $workspace = new Workspace();
         $workspace->name = $request->first_name . "'s workspace";
+        $workspace->plan_id = $selectedPlan->id;
+        $workspace->subscribed = false;
+        $workspace->active = false;
+        $workspace->term = 'custom';
         $workspace->save();
 
+        // Create user
         $user = new User();
-
-        $password = Hash::make($request->password);
-
-        $user->password = $password;
-
+        $user->password = Hash::make($request->password);
         $user->first_name = $request->first_name;
-        $user->last_name = $request->last_name;
-
-        $user->email = $request->input("email");
-
+        $user->last_name = $request->surname;
+        $user->email = $request->email;
         $user->workspace_id = $workspace->id;
-
         $user->save();
+
+        // Create startup details
+        $startupDetail = new StartupDetail();
+        $startupDetail->user_id = $user->id;
+        $startupDetail->company_name = $request->company_name;
+        $startupDetail->industry = $request->industry;
+        $startupDetail->current_stage = $request->current_stage;
+        $startupDetail->team_size = $request->team_size;
+        $startupDetail->save();
 
         $workspace->owner_id = $user->id;
         $workspace->save();
 
-        if(!empty($this->super_settings['smtp_host']))
-        {
+        // Send welcome email if configured
+        if(!empty($this->super_settings['smtp_host'])) {
             try{
                 Config::set('mail.mailers.smtp.host',$this->super_settings['smtp_host']);
                 Config::set('mail.mailers.smtp.username',$this->super_settings['smtp_username']);
@@ -361,8 +416,49 @@ class AuthController extends Controller
             }
         }
 
+        // Store user info in session for contact page
+        session([
+            'new_user' => [
+                'name' => $user->first_name . ' ' . $user->last_name,
+                'email' => $user->email,
+                'plan' => $selectedPlan->name,
+                'registered' => true
+            ]
+        ]);
+        
+        // Show redirect page first, then redirect to external contact page
+        return view('auth.contact-redirect');
+    }
 
-        return redirect(config("app.url") . "/login");
+    private function handlePaidPlanRegistration($request, $selectedPlan)
+    {
+        // For paid plans, store registration data in session for payment processing
+        session([
+            'registration_data' => [
+                'email' => $request->email,
+                'first_name' => $request->first_name,
+                'surname' => $request->surname,
+                'password' => $request->password,
+                'user_type' => $request->user_type,
+                'company_name' => $request->company_name,
+                'industry' => $request->industry,
+                'current_stage' => $request->current_stage,
+                'team_size' => $request->team_size,
+                'selected_plan' => $request->selected_plan,
+                'selected_duration' => $request->selected_duration,
+                'plan' => $selectedPlan
+            ]
+        ]);
+
+        // Set pricing based on duration
+        $amount = $request->selected_duration === 'monthly' ? $selectedPlan->price_monthly : $selectedPlan->price_yearly;
+        
+        // Redirect to payment page
+        return redirect('/payment/stripe')->with([
+            'plan' => $selectedPlan,
+            'amount' => $amount,
+            'duration' => $request->selected_duration
+        ]);
     }
 
     public function logout(Request $request)

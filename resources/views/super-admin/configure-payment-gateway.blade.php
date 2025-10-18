@@ -1,6 +1,17 @@
 @extends('layouts.super-admin-portal')
 @section('content')
 
+    <div class="row mb-2">
+        <div class="col">
+            <h5 class="fw-bolder">
+                {{__('Settings')}} /<span class="text-secondary">
+                          {{__('Payment Settings')}}
+                    </span>
+            </h5>
+            <p class="text-muted">{{__('Configure your payment gateway settings')}}</p>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header fw-bolder">
            <h4> {{__('Configure payment gateway')}}</h4>

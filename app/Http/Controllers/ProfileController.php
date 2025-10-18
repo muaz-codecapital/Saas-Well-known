@@ -142,16 +142,22 @@ class ProfileController extends BaseController
 
 
 
-        $maximum_allowed_users = Workspace::getMaximumAllowedUsers($this->workspace);
-        $users_count_on_this_workspace = Workspace::usersCount($this->workspace->id);
+        // Check if workspace has active subscription for user limit validation
+        $hasActiveSubscription = Workspace::hasActiveSubscription($this->workspace);
 
+        if($hasActiveSubscription) {
+            $maximum_allowed_users = Workspace::getMaximumAllowedUsers($this->workspace);
+            $users_count_on_this_workspace = Workspace::usersCount($this->workspace->id);
 
-        if($users_count_on_this_workspace >= $maximum_allowed_users)
-        {
-//            if(!$this->user->super_admin)
-//            {
-//                abort(401);
-//            }
+            if($users_count_on_this_workspace >= $maximum_allowed_users)
+            {
+                if(!$this->user->super_admin)
+                {
+                    return redirect()->back()->withErrors([
+                        'user_limit_exceeded' => __('You have reached the maximum allowed users for your plan. Please upgrade your plan to add more users.')
+                    ]);
+                }
+            }
         }
 
         $user = false;
