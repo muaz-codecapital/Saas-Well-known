@@ -42,6 +42,7 @@ class SubscriptionRequired
             '/new-user',            // Add new user
             '/user-edit/',          // Edit user (with ID)
             '/delete/',             // Delete actions (with action and ID)
+            '/google/',             // Google Calendar OAuth routes
         ];
 
         $currentPath = $request->getPathInfo();

@@ -55,7 +55,7 @@ class AuthController extends Controller
         return \view("auth.login");
     }
 
-    public function superAdminlogin()
+    public function superAdminLogin()
     {
         return \view("auth.super-admin-login");
     }
@@ -291,7 +291,7 @@ class AuthController extends Controller
             Auth::login($user, true);
             $request->session()->regenerate();
 
-            return redirect(config("app.url") . "/super-admin/dashboard");
+            return redirect(rtrim(config("app.url"), '/') . "/super-admin/dashboard");
         }
 
         return back()->withErrors([

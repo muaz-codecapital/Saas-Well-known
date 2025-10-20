@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActionsController;
+use App\Http\Controllers\TagController;
 use App\Http\Controllers\AiController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BlogController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\SubscribeController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\SwotController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\GoogleCalendarController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -128,7 +130,7 @@ Route::get("/subscribe", [SubscribeController::class, "subscribe"]);
 Route::get("/cancel-subscription", [SubscribeController::class, "cancelSubscription"]);
 Route::post("/payment-stripe", [SubscribeController::class, "paymentStripe"]);
 Route::post("/payment-paystack", [SubscribeController::class, "paymentPaystack"]);
-//Route::get("/", [AuthController::class, "login"])->name("login");
+Route::get("/", [AuthController::class, "login"])->name("login");
 Route::get("/login", [AuthController::class, "login"]);
 Route::get("/signup", [AuthController::class, "signup"]);
 
@@ -241,11 +243,24 @@ Route::middleware(['auth', 'subscription.required'])->group(function () {
     Route::post("/save-notice", [NoticeController::class, "noticePost"]);
 
     // Calendar and Notes (basic features)
-    Route::get("/calendar/{action?}", [PlansController::class, "calendarAction"]);
-    Route::get("/notes", [ActionsController::class, "notes"]);
-    Route::get("/add-note", [ActionsController::class, "addNote"]);
-    Route::get("/view-note", [ActionsController::class, "viewNote"]);
-    Route::post("/save-note", [ActionsController::class, "notePost"]);
+    Route::get("/calendar/{action?}", [PlansController::class, "calendarAction"])->name('calendar');
+
+    // Google Calendar Integration
+    Route::get('/google/redirect', [GoogleCalendarController::class, 'redirectToGoogle'])->name('google.redirect');
+    Route::get('/google/callback', [GoogleCalendarController::class, 'handleGoogleCallback'])->name('google.callback');
+    Route::post('/google/sync', [GoogleCalendarController::class, 'sync'])->name('google.sync');
+    Route::get('/google/disconnect', [GoogleCalendarController::class, 'disconnect'])->name('google.disconnect');
+
+    Route::get("/notes", [ActionsController::class, "notes"])->name('notes.index');
+    Route::get("/add-note", [ActionsController::class, "addNote"])->name('notes.create');
+    Route::get("/view-note", [ActionsController::class, "viewNote"])->name('notes.show');
+    Route::post("/save-note", [ActionsController::class, "notePost"])->name('notes.store');
+    Route::delete("/notes/{note}", [ActionsController::class, "deleteNote"])->name('notes.destroy');
+
+    // Tag Management Routes
+    Route::resource('tags', TagController::class);
+    Route::get('/api/tags', [TagController::class, 'getTags'])->name('tags.api');
+    Route::post('/api/tags/create', [TagController::class, 'createTag'])->name('tags.create.api');
 
     // Basic Actions
     Route::get("/add-task", [ActionsController::class, "addTask"]);
@@ -364,7 +379,6 @@ Route::middleware(['auth', 'subscription.required'])->group(function () {
     });
 
 
-    Route::post("/save-note", [ActionsController::class, "notePost"]);
     Route::post("/save-swot", [SwotController::class, "swotPost"]);
     Route::post("/save-pest", [PestController::class, "pestPost"]);
     Route::post("/save-pestel", [PestelController::class, "pestelPost"]);

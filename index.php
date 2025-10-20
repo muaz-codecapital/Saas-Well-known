@@ -4,10 +4,10 @@ use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
-const PUBLIC_DIR = '/public';
+const PUBLIC_DIR = '';
 
 
-if (!file_exists(__DIR__.'.env')) {
+if (!file_exists(__DIR__.'/.env')) {
     require __DIR__.'/app/Supports/installer_init.php';
 }
 

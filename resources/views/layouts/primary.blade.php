@@ -19,12 +19,15 @@
 
     <link id="pagestyle" href="{{PUBLIC_DIR}}/css/app.css?v=1128" rel="stylesheet"/>
 
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
 {{--    <link rel="stylesheet" href="frappe-gantt.css">--}}
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.5.0/dist/frappe-gantt.css" />
 
     @yield('head')
 
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
 
 </head>
@@ -503,6 +506,9 @@
     })();
 </script>
 <script src="https://cdn.jsdelivr.net/combine/npm/snapsvg@0.5.1,npm/frappe-gantt@0.5.0/dist/frappe-gantt.min.js"></script>
+
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @yield('script')
 

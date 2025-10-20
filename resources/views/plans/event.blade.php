@@ -45,6 +45,12 @@
         <textarea class="form-control" rows="10" id="description"
                   name="description">@if (!empty($event)){!! $event->description !!}@endif</textarea>
         </div>
+
+        <div class="form-group mt-4">
+            <label for="color" class="form-control-label">{{__('Event Color')}}</label>
+            <input class="form-control" name="color" type="color" id="color" value="{{$event->color ?? '#3788d8'}}">
+        </div>
+
     @csrf
     @if($event)
         <input type="hidden" name="id" value="{{$event->id}}">

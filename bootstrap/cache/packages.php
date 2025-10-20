@@ -95,11 +95,4 @@
       0 => 'Rinvex\\Country\\Providers\\CountryServiceProvider',
     ),
   ),
-  'spatie/laravel-ray' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Spatie\\LaravelRay\\RayServiceProvider',
-    ),
-  ),
 );

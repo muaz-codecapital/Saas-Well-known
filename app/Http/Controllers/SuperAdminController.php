@@ -77,7 +77,7 @@ class SuperAdminController extends SuperAdminBaseController
 
 
 
-        return redirect(config('app.url').'/super-admin/dashboard');
+        return redirect(rtrim(config('app.url'), '/') . '/super-admin/dashboard');
     }
 
     public function users()
@@ -751,7 +751,7 @@ class SuperAdminController extends SuperAdminBaseController
         $post->sort_order = $request->sort_order;
         $post->save();
 
-        return redirect(config('app.url').'/super-admin/pages');
+        return redirect(rtrim(config('app.url'), '/') . '/super-admin/pages');
 
     }
 
@@ -787,7 +787,7 @@ class SuperAdminController extends SuperAdminBaseController
 
         $post->save();
 
-        return redirect(config('app.url').'/landingpage');
+        return redirect(rtrim(config('app.url'), '/') . '/landingpage');
 
     }
 
@@ -842,7 +842,7 @@ class SuperAdminController extends SuperAdminBaseController
 
         $post->save();
 
-        return redirect(config('app.url').'/landingpage');
+        return redirect(rtrim(config('app.url'), '/') . '/landingpage');
 
     }
 
@@ -889,7 +889,7 @@ class SuperAdminController extends SuperAdminBaseController
 
         $post->save();
 
-        return redirect(config('app.url').'/landingpage');
+        return redirect(rtrim(config('app.url'), '/') . '/landingpage');
 
     }
 
@@ -1004,7 +1004,7 @@ class SuperAdminController extends SuperAdminBaseController
 
         $post->save();
 
-        return redirect(config('app.url').'/landingpage');
+        return redirect(rtrim(config('app.url'), '/') . '/landingpage');
 
     }
 
@@ -1038,7 +1038,7 @@ class SuperAdminController extends SuperAdminBaseController
 
         $post->save();
 
-        return redirect(config('app.url').'/landingpage');
+        return redirect(rtrim(config('app.url'), '/') . '/landingpage');
 
     }
 
@@ -1069,7 +1069,7 @@ class SuperAdminController extends SuperAdminBaseController
         $post->story2_paragrapgh = $request->story2_paragrapgh;
         $post->save();
 
-        return redirect(config('app.url').'/landingpage');
+        return redirect(rtrim(config('app.url'), '/') . '/landingpage');
 
     }
     public function newsletterSection(Request $request)
@@ -1086,7 +1086,7 @@ class SuperAdminController extends SuperAdminBaseController
         $post->newsletter_paragraph = $request->newsletter_paragraph;
         $post->save();
 
-        return redirect(config('app.url').'/landingpage');
+        return redirect(rtrim(config('app.url'), '/') . '/landingpage');
 
     }
 
@@ -1112,7 +1112,7 @@ class SuperAdminController extends SuperAdminBaseController
 
         $post->save();
 
-        return redirect(config('app.url').'/landingpage');
+        return redirect(rtrim(config('app.url'), '/') . '/landingpage');
 
     }
 
@@ -1150,7 +1150,7 @@ class SuperAdminController extends SuperAdminBaseController
         $post->hero_subtitle = $request->hero_subtitle;
         $post->save();
 
-        return redirect(config('app.url').'/pricingpage');
+        return redirect(rtrim(config('app.url'), '/') . '/pricingpage');
 
     }
 
@@ -1171,7 +1171,7 @@ class SuperAdminController extends SuperAdminBaseController
 
         $post->save();
 
-        return redirect(config('app.url').'/landingpage');
+        return redirect(rtrim(config('app.url'), '/') . '/landingpage');
 
     }
     public function privacyPage()
@@ -1214,7 +1214,7 @@ class SuperAdminController extends SuperAdminBaseController
         $post->description = $request->description;
         $post->save();
 
-        return redirect(config('app.url').'/privacypage');
+        return redirect(rtrim(config('app.url'), '/') . '/privacypage');
 
     }
 
@@ -1233,7 +1233,7 @@ class SuperAdminController extends SuperAdminBaseController
         $post->description = $request->description;
         $post->save();
 
-        return redirect(config('app.url').'/termspage');
+        return redirect(rtrim(config('app.url'), '/') . '/termspage');
 
     }
 
@@ -1271,7 +1271,7 @@ class SuperAdminController extends SuperAdminBaseController
         $post->twitter = $request->twitter;
         $post->save();
 
-        return redirect(config('app.url').'/footer');
+        return redirect(rtrim(config('app.url'), '/') . '/footer');
 
     }
     public function cookiePage()
@@ -1300,7 +1300,7 @@ class SuperAdminController extends SuperAdminBaseController
         $post->description = $request->description;
         $post->save();
 
-        return redirect(config('app.url').'/cookiepage');
+        return redirect(rtrim(config('app.url'), '/') . '/cookiepage');
 
     }
 

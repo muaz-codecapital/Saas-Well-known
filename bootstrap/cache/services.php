@@ -35,11 +35,10 @@
     31 => 'Carbon\\Laravel\\ServiceProvider',
     32 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
     33 => 'Rinvex\\Country\\Providers\\CountryServiceProvider',
-    34 => 'Spatie\\LaravelRay\\RayServiceProvider',
-    35 => 'App\\Providers\\AppServiceProvider',
-    36 => 'App\\Providers\\AuthServiceProvider',
-    37 => 'App\\Providers\\EventServiceProvider',
-    38 => 'App\\Providers\\RouteServiceProvider',
+    34 => 'App\\Providers\\AppServiceProvider',
+    35 => 'App\\Providers\\AuthServiceProvider',
+    36 => 'App\\Providers\\EventServiceProvider',
+    37 => 'App\\Providers\\RouteServiceProvider',
   ),
   'eager' => 
   array (
@@ -63,11 +62,10 @@
     17 => 'Carbon\\Laravel\\ServiceProvider',
     18 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
     19 => 'Rinvex\\Country\\Providers\\CountryServiceProvider',
-    20 => 'Spatie\\LaravelRay\\RayServiceProvider',
-    21 => 'App\\Providers\\AppServiceProvider',
-    22 => 'App\\Providers\\AuthServiceProvider',
-    23 => 'App\\Providers\\EventServiceProvider',
-    24 => 'App\\Providers\\RouteServiceProvider',
+    20 => 'App\\Providers\\AppServiceProvider',
+    21 => 'App\\Providers\\AuthServiceProvider',
+    22 => 'App\\Providers\\EventServiceProvider',
+    23 => 'App\\Providers\\RouteServiceProvider',
   ),
   'deferred' => 
   array (

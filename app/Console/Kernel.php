@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        Commands\SyncGoogleCalendars::class,
     ];
 
     /**
@@ -24,6 +24,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        // Sync Google Calendars every hour
+        $schedule->command('google:sync-calendars')->hourly();
+
         // $schedule->command('inspire')->hourly();
     }
 

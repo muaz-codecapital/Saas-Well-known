@@ -16,6 +16,7 @@
         "doctrine/dbal": "^4.3",
         "fideloper/proxy": "^4.4",
         "fruitcake/laravel-cors": "^2.0",
+        "google/apiclient": "2.15",
         "guzzlehttp/guzzle": "^7.0.1",
         "jenssegers/date": "^4.0",
         "laravel/framework": "^8.40",
@@ -23,7 +24,6 @@
         "mews/purifier": "^3.3",
         "openai-php/client": "^0.4.1",
         "rinvex/countries": "^7.3",
-        "spatie/laravel-ray": "^1.23",
         "stripe/stripe-php": "^7.92"
     },
     "require-dev": {

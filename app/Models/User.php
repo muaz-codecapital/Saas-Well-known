@@ -57,4 +57,20 @@ class User extends Authenticatable
     {
         return $this->hasOne(StartupDetail::class);
     }
+
+    /**
+     * Get the user's Google account.
+     */
+    public function googleAccount()
+    {
+        return $this->hasOne(GoogleAccount::class);
+    }
+
+    /**
+     * Get the user's events.
+     */
+    public function events()
+    {
+        return $this->hasMany(Event::class);
+    }
 }

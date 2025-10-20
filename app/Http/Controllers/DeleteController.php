@@ -7,6 +7,7 @@ use App\Models\Blog;
 use App\Models\BrainStorm;
 use App\Models\BusinessModel;
 use App\Models\BusinessPlan;
+use App\Models\Event;
 use App\Models\Calendar;
 
 use App\Models\Document;
@@ -43,7 +44,7 @@ class DeleteController extends BaseController
     {
         switch ($action) {
             case "event":
-                $event = Calendar::where(
+                $event = Event::where(
                     "workspace_id",
                     $this->user->workspace_id
                 )
@@ -62,6 +63,15 @@ class DeleteController extends BaseController
                     ->first();
                 if ($note) {
                     $note->delete();
+                    
+                    // Handle AJAX requests
+                    if (request()->ajax() || request()->expectsJson()) {
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Note deleted successfully'
+                        ]);
+                    }
+                    
                     return redirect("/notes");
                 }
 

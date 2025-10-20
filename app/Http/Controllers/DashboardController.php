@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BusinessModel;
+use App\Models\Event;
 use App\Models\Calendar;
 use App\Models\Investor;
 use App\Models\Note;
@@ -34,7 +35,7 @@ class DashboardController extends BaseController
             ->where("workspace_id", $this->user->workspace_id)
             ->limit(4)
             ->get();
-        $recent_events = Calendar::orderBy("id", "desc")
+        $recent_events = Event::orderBy("id", "desc")
             ->where("workspace_id", $this->user->workspace_id)
             ->limit(5)
             ->get();
@@ -176,7 +177,7 @@ class DashboardController extends BaseController
                 }
             }
 
-            return redirect(config('app.url')."/dashboard");
+            return redirect(rtrim(config('app.url'), '/') . "/dashboard");
 
         }
 

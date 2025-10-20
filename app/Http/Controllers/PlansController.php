@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BrainStorm;
 use App\Models\BusinessModel;
 use App\Models\BusinessPlan;
+use App\Models\Event;
 use App\Models\Calendar;
 use App\Models\Goal;
 use App\Models\GoalPlan;
@@ -28,7 +29,7 @@ class PlansController extends BaseController
 
         switch ($action) {
             case "":
-                $events = Calendar::where(
+                $events = Event::where(
                     "workspace_id",
                     $this->user->workspace_id
                 )->get();
@@ -47,7 +48,7 @@ class PlansController extends BaseController
                 $event = false;
 
                 if ($request->id) {
-                    $event = Calendar::where(
+                    $event = Event::where(
                         "workspace_id",
                         $this->user->workspace_id
                     )
@@ -75,30 +76,43 @@ class PlansController extends BaseController
         if ($this->modules && !in_array("calendar", $this->modules)) {
             abort(401);
         }
-        $request->validate([
+        $validated = $request->validate([
             "title" => "required|max:150",
             "id" => "nullable|integer",
+            "start_date" => "required|date",
+            "end_date" => "required|date|after:start_date",
+            "description" => "nullable|string",
+            "color" => "nullable|string|max:20",
         ]);
 
         $event = false;
 
         if ($request->id) {
-            $event = Calendar::where("workspace_id", $this->user->workspace_id)
+            $event = Event::where("workspace_id", $this->user->workspace_id)
                 ->where("id", $request->id)
                 ->first();
         }
 
         if (!$event) {
-            $event = new Calendar();
-            $event->uuid = Str::uuid();
+            $event = new Event();
             $event->workspace_id = $this->user->workspace_id;
         }
 
-        $event->title = $request->title;
-        $event->start_date = $request->start_date;
-        $event->end_date = $request->end_date;
-        $event->description = $request->description;
+        $event->user_id = $this->user->id; // Add user_id for Google Calendar sync
+        $event->title = $validated['title'];
+        $event->start_date = $validated['start_date'];
+        $event->end_date = $validated['end_date'];
+        $event->description = $validated['description'] ?? null;
+        $event->color = $validated['color'] ?? '#3788d8'; // Default color if not provided
         $event->save();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'id' => $event->id,
+                'message' => __('Event saved successfully'),
+            ]);
+        }
 
         return redirect("/calendar");
     }
