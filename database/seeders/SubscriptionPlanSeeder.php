@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\SubscriptionPlan;
+use Illuminate\Support\Facades\DB;
 
 class SubscriptionPlanSeeder extends Seeder
 {
@@ -15,10 +16,10 @@ class SubscriptionPlanSeeder extends Seeder
     public function run()
     {
         // Clear existing plans and features (handle foreign key constraints)
-        \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         \App\Models\SubscriptionPlanFeature::truncate();
         SubscriptionPlan::truncate();
-        \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // Standard Plan (with pricing)
         $standardPlan = SubscriptionPlan::create([
@@ -41,6 +42,24 @@ class SubscriptionPlanSeeder extends Seeder
             'color_scheme' => 'blue',
             'active' => true,
             'featured' => true,
+            'modules' => json_encode([
+                'product_planning',
+                'to_dos',
+                'crm',
+                'calendar',
+                'brainstorm',
+                'business_model',
+                'swot',
+                'pest',
+                'pestle',
+                'mckinsey',
+                'porter',
+                'business_plan',
+                'marketing_plan',
+                'notes',
+                'documents'
+            ]),
+            'has_modules' => true,
         ]);
 
         // Standard Plan Features
@@ -84,6 +103,24 @@ class SubscriptionPlanSeeder extends Seeder
             'color_scheme' => 'purple',
             'active' => true,
             'featured' => false,
+            'modules' => json_encode([
+                'product_planning',
+                'to_dos',
+                'crm',
+                'calendar',
+                'brainstorm',
+                'business_model',
+                'swot',
+                'pest',
+                'pestle',
+                'mckinsey',
+                'porter',
+                'business_plan',
+                'marketing_plan',
+                'notes',
+                'documents'
+            ]),
+            'has_modules' => true,
         ]);
 
         // Enterprise Plan Features

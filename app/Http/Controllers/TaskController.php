@@ -10,17 +10,24 @@ use Illuminate\Support\Str;
 class TaskController extends BaseController
 {
 
-    public function gantt()
+    public function kanban(Request $request)
     {
 //        if ($this->modules && !in_array("notes", $this->modules)) {
 //            abort(401);
 //        }
 
+        $workspace_type = $request->get("workspace_type");
+        $priority = $request->get("priority");
+
         $tasks = Task::where("workspace_id", $this->user->workspace_id)
+            ->when($workspace_type, function ($query, $workspace_type) {
+                return $query->where("workspace_type", $workspace_type);
+            })
+            ->when($priority, function ($query, $priority) {
+                return $query->where("priority", $priority);
+            })
+            ->with(['assignee', 'contact', 'owner'])
             ->get();
-//            ->groupBy("status")
-//            ->all();
-
 
         $users = User::where(
             "workspace_id",
@@ -28,36 +35,20 @@ class TaskController extends BaseController
         )->get()->keyBy("id")
             ->all();
 
-
-        return \view("tasks.gantt", [
-            "selected_navigation" => "todos",
-            "tasks" => $tasks,
-            "users" => $users,
-        ]);
-    }
-    public function kanban()
-    {
-//        if ($this->modules && !in_array("notes", $this->modules)) {
-//            abort(401);
-//        }
-
-        $tasks = Task::where("workspace_id", $this->user->workspace_id)
-            ->get()
-            ->groupBy("status")
-            ->all();
-
-
-        $users = User::where(
-            "workspace_id",
-            $this->user->workspace_id
-        )->get()->keyBy("id")
-            ->all();
-
+        // Get configuration data
+        $workspaceTypes = config('task.workspace_types');
+        $taskStatuses = config('task.statuses');
+        $taskPriorities = config('task.priorities');
 
         return \view("tasks.kanban", [
             "selected_navigation" => "todos",
             "tasks" => $tasks,
             "users" => $users,
+            'workspace_type' => $workspace_type,
+            'priority' => $priority,
+            'workspaceTypes' => $workspaceTypes,
+            'taskStatuses' => $taskStatuses,
+            'taskPriorities' => $taskPriorities,
         ]);
     }
     public function setStatus(Request $request)
@@ -88,7 +79,9 @@ class TaskController extends BaseController
                     abort(401);
                 }
                 $task = false;
-                $group = $request->get("group");
+                $workspace_type = $request->get("workspace_type");
+                $status = $request->get("status");
+                $priority = $request->get("priority");
                 $view_type = $request->view_type ?? "list";
 
                 if ($request->id) {
@@ -97,22 +90,36 @@ class TaskController extends BaseController
                         $this->user->workspace_id
                     )
                         ->where("id", $request->id)
-                        ->when($group, function ($query, $group) {
-                            return $query->where("group", $group);
+                        ->when($workspace_type, function ($query, $workspace_type) {
+                            return $query->where("workspace_type", $workspace_type);
                         })
                         ->first();
                 }
 
                 $tasks = Task::where("workspace_id", $this->user->workspace_id)
-                    ->when($group, function ($query, $group) {
-                        return $query->where("group", $group);
+                    ->when($workspace_type, function ($query, $workspace_type) {
+                        return $query->where("workspace_type", $workspace_type);
                     })
+                    ->when($status, function ($query, $status) {
+                        return $query->where("status", $status);
+                    })
+                    ->when($priority, function ($query, $priority) {
+                        return $query->where("priority", $priority);
+                    })
+                    ->with(['assignee', 'contact', 'owner'])
+                    ->orderBy('created_at', 'desc')
                     ->get();
+                    
                 $users = User::where(
                     "workspace_id",
                     $this->user->workspace_id
                 )->get()->keyBy("id")
                     ->all();
+
+                // Get workspace types for filtering
+                $workspaceTypes = config('task.workspace_types');
+                $taskStatuses = config('task.statuses');
+                $taskPriorities = config('task.priorities');
 
                 return \view("tasks.list", [
                     "selected_navigation" => "todos",
@@ -120,7 +127,12 @@ class TaskController extends BaseController
                     "task" => $task,
                     "users" => $users,
                     "view_type" => $view_type,
-                    'group' => $group,
+                    'workspace_type' => $workspace_type,
+                    'status' => $status,
+                    'priority' => $priority,
+                    'workspaceTypes' => $workspaceTypes,
+                    'taskStatuses' => $taskStatuses,
+                    'taskPriorities' => $taskPriorities,
                 ]);
 
                 break;
@@ -157,6 +169,12 @@ class TaskController extends BaseController
                 $request->validate([
                     "subject" => "required|max:150",
                     "contact_id" => "nullable|integer",
+                    "assignee_id" => "nullable|integer",
+                    "priority" => "nullable|string",
+                    "workspace_type" => "nullable|string",
+                    "estimated_hours" => "nullable|integer|min:0",
+                    "progress" => "nullable|integer|min:0|max:100",
+                    "tags" => "nullable|string",
                 ]);
                 $task = false;
 
@@ -173,23 +191,32 @@ class TaskController extends BaseController
                     $task = new Task();
                     $task->uuid = Str::uuid();
                     $task->workspace_id = $this->user->workspace_id;
-                    $task->status = "todo";
+                    $task->status = "to_do";
+                    $task->owner_id = auth()->id();
                 }
 
                 $task->subject = $request->subject;
                 $task->contact_id = $request->contact_id;
+                $task->assignee_id = $request->assignee_id;
                 $task->due_date = $request->due_date;
                 $task->start_date = $request->start_date;
                 $task->description = $request->description;
-                $task->group = $request->group ?? null;
+                $task->priority = $request->priority ?? 'medium';
+                $task->workspace_type = $request->workspace_type;
+                $task->estimated_hours = $request->estimated_hours;
+                $task->progress = $request->progress ?? 0;
+                
+                // Handle tags if provided
+                if ($request->has('tags')) {
+                    $tags = is_string($request->tags) ? explode(',', $request->tags) : $request->tags;
+                    $task->tags = array_map('trim', $tags);
+                }
 
                 $task->save();
 
                 break;
 
             case "change-status":
-                ray($request->all());
-
                 $request->validate([
                     "id" => "required|integer",
                 ]);
@@ -211,45 +238,97 @@ class TaskController extends BaseController
         $request->validate([
             'status_name' => 'required|string|max:50',
             'status_class' => 'required|string',
+            'status_color' => 'nullable|string',
+            'status_icon' => 'nullable|string',
         ]);
 
         $configPath = config_path('task.php');
-        $statuses = config('task.statuses');
+        $config = config('task');
+        $statuses = $config['statuses'];
         $newKey = strtolower(str_replace(' ', '_', $request->status_name));
+        
         if(isset($statuses[$newKey])){
             return response()->json(['success'=>false, 'message'=>'Status already exists']);
         }
+        
         $statuses[$newKey] = [
             'label' => $request->status_name,
-            'class' => $request->status_class,
+            'class' => str_replace('btn-', '', $request->status_class),
+            'color' => $request->status_color ?? $this->getColorFromClass($request->status_class),
+            'icon' => $request->status_icon ?? 'circle',
         ];
-        $content = "<?php\n\nreturn [\n    'statuses' => " . var_export($statuses, true) . ",\n];\n";
+        
+        $config['statuses'] = $statuses;
+        $content = "<?php\n\nreturn " . var_export($config, true) . ";\n";
 
         file_put_contents($configPath, $content);
 
-        return response()->json(['success'=>true]);
+        return response()->json(['success'=>true, 'message'=>'Status added successfully']);
     }
 
-    public function addWorkSpace(Request $request)
+    private function getColorFromClass($class)
+    {
+        $colors = [
+            'btn-primary' => '#667eea',
+            'btn-secondary' => '#8392ab',
+            'btn-success' => '#11998e',
+            'btn-danger' => '#ea0606',
+            'btn-warning' => '#fbcf33',
+            'btn-info' => '#17c1e8',
+            'btn-dark' => '#344767',
+        ];
+        
+        return $colors[$class] ?? '#8392ab';
+    }
+
+
+
+    public function quickUpdateStatus(Request $request)
     {
         $request->validate([
-            'workspace_name' => 'required|string|max:50',
+            'task_id' => 'required|integer',
+            'status' => 'required|string',
         ]);
-        $configPath = config_path('groups.php');
-        $groups = config('groups.groups');
-        $newKey = strtolower(str_replace(' ', '_', $request->workspace_name));
-        if (isset($groups[$newKey])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Group already exists',
-            ]);
+
+        $task = Task::where('workspace_id', $this->user->workspace_id)
+            ->where('id', $request->task_id)
+            ->first();
+
+        if (!$task) {
+            return response()->json(['success' => false, 'message' => 'Task not found']);
         }
-        $groups[$newKey] = \Illuminate\Support\Str::title(str_replace('_', ' ', $newKey));
-        $content = "<?php\n\nreturn [\n    'groups' => " . var_export($groups, true) . ",\n];\n";
-        file_put_contents($configPath, $content);
+
+        $task->status = $request->status;
+        $task->save();
+
         return response()->json([
-            'success' => true,
-            'message' => 'Group added successfully',
+            'success' => true, 
+            'message' => 'Task status updated successfully',
+            'task' => $task->load(['assignee', 'contact', 'owner'])
+        ]);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|string',
+        ]);
+
+        $task = Task::where('workspace_id', $this->user->workspace_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$task) {
+            return response()->json(['success' => false, 'message' => 'Task not found'], 404);
+        }
+
+        $task->status = $request->status;
+        $task->save();
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'Task status updated successfully',
+            'task' => $task->load(['assignee', 'contact', 'owner'])
         ]);
     }
 

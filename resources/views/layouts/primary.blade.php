@@ -11,6 +11,7 @@
     @endif
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
     <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 
     <title>
@@ -22,8 +23,6 @@
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-{{--    <link rel="stylesheet" href="frappe-gantt.css">--}}
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.5.0/dist/frappe-gantt.css" />
 
     @yield('head')
 
@@ -86,10 +85,10 @@
                 <h6 class="ps-4 ms-2 text-uppercase text-muted text-xs opacity-6">{{__('Product Planning')}} </h6>
             </li>
 
-            @if(empty($modules) || in_array('projects',$modules))
+            @if(empty($modules) || in_array('product_planning',$modules))
                 <li class="nav-item ">
-                    <a class="nav-link @if(($selected_navigation ?? '') === 'projects') active @endif "
-                       href="/projects">
+                    <a class="nav-link @if(($selected_navigation ?? '') === 'product_planning') active @endif "
+                       href="{{ route('admin.product-planning.list') }}">
 
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -104,6 +103,80 @@
                 </li>
 
             @endif
+
+            <li class="nav-item mt-3 mb-2">
+                <h6 class="ps-4 ms-2 text-uppercase text-muted text-xs opacity-6">{{__('CRM & Sales')}} </h6>
+            </li>
+
+            @if(empty($modules) || in_array('crm',$modules))
+                <li class="nav-item">
+                    <div class="d-flex align-items-center justify-content-between nav-link
+                    @if(($selected_navigation ?? '') === 'crm') active @endif">
+
+                        <!-- Main link (navigates to /crm) -->
+                        <a href="{{ route('admin.crm.dashboard') }}"
+                           class="d-flex align-items-center text-decoration-none text-reset flex-grow-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                 class="feather feather-users">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <span class="nav-link-text ms-3">{{ __('CRM') }}</span>
+                        </a>
+
+                        <!-- Arrow toggle (controls collapse only) -->
+                        <a href="#crmGroups" data-bs-toggle="collapse" aria-expanded="false" class="text-reset">
+                            <i class="fa fa-chevron-down small"></i>
+                        </a>
+                    </div>
+                    <ul class="collapse nav flex-column ms-4 @if(($selected_navigation ?? '') === 'crm') show @endif"
+                        id="crmGroups">
+                        <!-- Dashboard -->
+                        <li class="nav-item">
+                            <a class="nav-link @if(request()->routeIs('admin.crm.dashboard')) active @endif"
+                               href="{{ route('admin.crm.dashboard') }}">
+                                <i class="fas fa-tachometer-alt me-2"></i>{{ __('Dashboard') }}
+                            </a>
+                        </li>
+
+                        <!-- Contacts & Leads -->
+                        <li class="nav-item">
+                            <a class="nav-link @if(request()->routeIs('admin.crm.contacts*')) active @endif"
+                               href="{{ route('admin.crm.contacts') }}">
+                                <i class="fas fa-address-book me-2"></i>{{ __('Contacts & Leads') }}
+                            </a>
+                        </li>
+
+                        <!-- Companies -->
+                        <li class="nav-item">
+                            <a class="nav-link @if(request()->routeIs('admin.crm.companies*')) active @endif"
+                               href="{{ route('admin.crm.companies') }}">
+                                <i class="fas fa-building me-2"></i>{{ __('Companies') }}
+                            </a>
+                        </li>
+
+                        <!-- Activities -->
+                        <li class="nav-item">
+                            <a class="nav-link @if(request()->routeIs('admin.crm.activities*')) active @endif"
+                               href="{{ route('admin.crm.activities') }}">
+                                <i class="fas fa-history me-2"></i>{{ __('Activities') }}
+                            </a>
+                        </li>
+
+                        <!-- Reminders -->
+                        <li class="nav-item">
+                            <a class="nav-link @if(request()->routeIs('admin.crm.reminders*')) active @endif"
+                               href="{{ route('admin.crm.reminders') }}">
+                                <i class="fas fa-bell me-2"></i>{{ __('Reminders') }}
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @endif
+
             @if(empty($modules) || in_array('to_dos',$modules))
                 <li class="nav-item">
                     <div class="d-flex align-items-center justify-content-between nav-link
@@ -128,11 +201,20 @@
                     </div>
                     <ul class="collapse nav flex-column ms-4 @if(($selected_navigation ?? '') === 'todos') show @endif"
                         id="tasksGroups">
-                        @foreach(config('groups.groups') as $groupKey => $groupLabel)
+                        <!-- All Tasks -->
+                        <li class="nav-item">
+                            <a class="nav-link @if(!request()->get('workspace_type')) active @endif"
+                               href="{{ route('admin.tasks', ['action' => 'list']) }}">
+                                <i class="fas fa-list me-2"></i>{{ __('All Tasks') }}
+                            </a>
+                        </li>
+                        
+                        <!-- Workspace Types -->
+                        @foreach(config('task.workspace_types') as $workspaceKey => $workspaceType)
                             <li class="nav-item">
-                                <a class="nav-link @if(request()->get('group') === $groupKey) active @endif"
-                                   href="{{ route('admin.tasks', ['action' => 'list', 'group' => $groupKey]) }}">
-                                    {{ $groupLabel }}
+                                <a class="nav-link @if(request()->get('workspace_type') === $workspaceKey) active @endif"
+                                   href="{{ route('admin.tasks', ['action' => 'list', 'workspace_type' => $workspaceKey]) }}">
+                                    <i class="ni ni-{{ $workspaceType['icon'] }} me-2" style="color: {{ $workspaceType['color'] }}"></i>{{ $workspaceType['label'] }}
                                 </a>
                             </li>
                         @endforeach
@@ -505,7 +587,6 @@
         }
     })();
 </script>
-<script src="https://cdn.jsdelivr.net/combine/npm/snapsvg@0.5.1,npm/frappe-gantt@0.5.0/dist/frappe-gantt.min.js"></script>
 
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

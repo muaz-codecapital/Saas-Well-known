@@ -53,10 +53,10 @@
 
                             <!-- Action Buttons -->
                             <div class="action-buttons">
-                                <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editTag({{ $tag->id }})" title="{{ __('Edit Tag') }}">
+                                <button type="button" class="btn btn-action btn-edit" onclick="editTag({{ $tag->id }})" title="{{ __('Edit Tag') }}">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteTag({{ $tag->id }})" title="{{ __('Delete Tag') }}">
+                                <button type="button" class="btn btn-action btn-delete" onclick="deleteTag({{ $tag->id }})" title="{{ __('Delete Tag') }}">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -486,20 +486,32 @@
             justify-content: center;
             border: none;
             transition: all 0.2s ease;
+            text-decoration: none;
         }
 
-        .btn-outline-primary:hover {
-            background: var(--primary-color);
-            border-color: var(--primary-color);
+        .btn-edit {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
-            transform: translateY(-1px);
         }
 
-        .btn-outline-danger:hover {
-            background: var(--danger-color);
-            border-color: var(--danger-color);
+        .btn-edit:hover {
+            background: linear-gradient(135deg, #ed64a6 0%, #f56565 100%);
             color: white;
             transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+            color: #e53e3e;
+            border: 1px solid #fed7d7;
+        }
+
+        .btn-delete:hover {
+            background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
         }
 
         /* SweetAlert Custom Styling */

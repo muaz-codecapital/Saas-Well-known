@@ -32,11 +32,12 @@
                         </div>
                     </div>
 
-                    {{-- Assign User --}}
-                    <div class="mb-1 mt-2">
-                        <label for="contact" class="form-label">{{__('Assign To')}}</label>
-                        <select class="form-select form-select-solid fw-bolder" id="contact" name="contact_id">
-                            <option value="0">{{__('None')}}</option>
+                    {{-- Assignment and Priority Row --}}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="contact_id" class="form-label">{{__('Assign To')}}</label>
+                            <select class="form-select form-select-solid fw-bolder" id="contact_id" name="contact_id">
+                                <option value="">{{__('None')}}</option>
                             @foreach ($users as $usertask)
                                 <option value="{{$usertask->id}}"
                                         @if (!empty($task) && $task->contact_id === $usertask->id) selected @endif>
@@ -45,17 +46,93 @@
                             @endforeach
                         </select>
                     </div>
-                    {{-- Groups Dropdown --}}
-                    <div class="mb-2">
-                        <label for="group" class="form-label">{{__('Group')}}</label>
-                        <select class="form-select form-select-solid fw-bolder" id="group" name="group">
-                            @foreach (config('groups.groups') as $key => $label)
-                                <option value="{{ $key }}"
-                                        @if (!empty($task) && $task->group === $key) selected @endif>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="col-md-6">
+                            <label for="assignee_id" class="form-label">{{__('Assignee')}}</label>
+                            <select class="form-select form-select-solid fw-bolder" id="assignee_id" name="assignee_id">
+                                <option value="">{{__('None')}}</option>
+                                @foreach ($users as $usertask)
+                                    <option value="{{$usertask->id}}"
+                                            @if (!empty($task) && $task->assignee_id === $usertask->id) selected @endif>
+                                        {{$usertask->first_name}} {{$usertask->last_name}}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Priority and Workspace Type Row --}}
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <label for="priority" class="form-label">{{__('Priority')}}</label>
+                            <select class="form-select form-select-solid fw-bolder" id="priority" name="priority">
+                                @foreach (config('task.priorities') as $key => $priority)
+                                    <option value="{{ $key }}"
+                                            @if (!empty($task) && $task->priority === $key) selected @elseif(empty($task) && $key === 'medium') selected @endif>
+                                        {{ $priority['label'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="workspace_type" class="form-label">{{__('Workspace Type')}}</label>
+                            <select class="form-select form-select-solid fw-bolder" id="workspace_type" name="workspace_type">
+                                <option value="">{{__('Select Type')}}</option>
+                                @foreach (config('task.workspace_types') as $key => $type)
+                                    <option value="{{ $key }}"
+                                            @if (!empty($task) && $task->workspace_type === $key) selected @endif>
+                                        {{ $type['label'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Status Row --}}
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">{{__('Status')}}</label>
+                            <select class="form-select form-select-solid fw-bolder" id="status" name="status">
+                                @foreach (config('task.statuses') as $key => $status)
+                                    <option value="{{ $key }}"
+                                            @if (!empty($task) && $task->status === $key) selected @elseif(empty($task) && $key === 'to_do') selected @endif>
+                                        {{ $status['label'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                        </div>
+                    </div>
+
+                    {{-- Progress Row --}}
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <label for="progress" class="form-label">{{__('Progress (%)')}}</label>
+                            <input type="number" id="progress" name="progress" 
+                                   class="form-control form-control-solid" 
+                                   min="0" max="100" 
+                                   value="@if (!empty($task)){{$task->progress}}@else 0 @endif"
+                                   placeholder="0"/>
+                        </div>
+                    </div>
+
+                    {{-- Estimated Hours Row --}}
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <label for="estimated_hours" class="form-label">{{__('Estimated Hours')}}</label>
+                            <input type="number" id="estimated_hours" name="estimated_hours" 
+                                   class="form-control form-control-solid" 
+                                   min="0" step="0.5"
+                                   value="@if (!empty($task)){{$task->estimated_hours}}@endif"
+                                   placeholder="0"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tags" class="form-label">{{__('Tags (comma separated)')}}</label>
+                            <input type="text" id="tags" name="tags" 
+                                   class="form-control form-control-solid" 
+                                   value="@if (!empty($task) && $task->tags){{ implode(', ', $task->tags) }}@endif"
+                                   placeholder="tag1, tag2, tag3"/>
+                        </div>
                     </div>
 
 
@@ -76,10 +153,11 @@
                 <div class="ms-3">
                     @csrf
                     <button type="submit" id="btn_submit" class="btn btn-info">{{__('Save')}}</button>
-                    <button type="button" class="btn bg-pink-light text-danger" data-bs-dismiss="modal">{{__('Close')}}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{__('Close')}}</button>
                 </div>
                 <input type="hidden" name="task_id" id="task_id" value="">
             </form>
         </div>
     </div>
 </div>
+

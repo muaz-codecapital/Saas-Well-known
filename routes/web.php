@@ -28,6 +28,8 @@ use App\Http\Controllers\SubscribeController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\SwotController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\ProductPlanningController;
+use App\Http\Controllers\CrmController;
 use App\Http\Controllers\GoogleCalendarController;
 
 use Illuminate\Support\Facades\Route;
@@ -174,9 +176,63 @@ Route::middleware(['auth', 'subscription.required'])->group(function () {
         Route::get("/tasks/{action}", [TaskController::class, "tasksAction"])->name("tasks");
         Route::post("/tasks/{action}", [TaskController::class, "tasksSave"])->name("tasks.save");
         Route::get("/task-list", [TaskController::class, "taskList"]);
+        Route::patch("/tasks/{id}/status", [TaskController::class, "updateStatus"])->name("tasks.updateStatus");
+
+        // Product Planning
+        Route::prefix("product-planning")->name("product-planning.")->group(function () {
+            Route::get("/", [ProductPlanningController::class, "index"])->name("index");
+            Route::get("/list", [ProductPlanningController::class, "list"])->name("list");
+            Route::get("/kanban", [ProductPlanningController::class, "kanban"])->name("kanban");
+            Route::get("/create", [ProductPlanningController::class, "create"])->name("create");
+            Route::post("/", [ProductPlanningController::class, "store"])->name("store");
+            Route::get("/{id}", [ProductPlanningController::class, "show"])->name("show");
+            Route::get("/{id}/edit", [ProductPlanningController::class, "edit"])->name("edit");
+            Route::put("/{id}", [ProductPlanningController::class, "update"])->name("update");
+            Route::patch("/{id}/status", [ProductPlanningController::class, "updateStatus"])->name("updateStatus");
+            Route::delete("/{id}", [ProductPlanningController::class, "destroy"])->name("destroy");
+            Route::get("/{id}/json", [ProductPlanningController::class, "getItem"])->name("get-item");
+        Route::post("/bulk-update-status", [ProductPlanningController::class, "bulkUpdateStatus"])->name("bulk-update-status");
+        Route::post("/bulk-delete", [ProductPlanningController::class, "bulkDelete"])->name("bulk-delete");
+        Route::post("/products", [ProductPlanningController::class, "storeProduct"])->name("store-product");
+        Route::post("/departments", [ProductPlanningController::class, "storeDepartment"])->name("store-department");
+        Route::post("/product-milestones", [ProductPlanningController::class, "storeMilestone"])->name("store-milestone");
+        });
+
+        // CRM Module
+        Route::prefix("crm")->name("crm.")->group(function () {
+            Route::get("/", [CrmController::class, "dashboard"])->name("dashboard");
+            Route::get("/contacts", [CrmController::class, "contacts"])->name("contacts");
+            Route::get("/contacts/kanban", [CrmController::class, "contactsKanban"])->name("contacts.kanban");
+            Route::get("/contacts/create", [CrmController::class, "contactCreate"])->name("contacts.create");
+            Route::get("/contacts/{id}", [CrmController::class, "contactShow"])->name("contacts.show");
+            Route::get("/companies", [CrmController::class, "companies"])->name("companies");
+            Route::get("/companies/create", [CrmController::class, "companyCreate"])->name("companies.create");
+            Route::get("/companies/{id}", [CrmController::class, "companyShow"])->name("companies.show");
+            Route::get("/companies/{id}/edit", [CrmController::class, "companyEdit"])->name("companies.edit");
+            Route::get("/activities", [CrmController::class, "activities"])->name("activities");
+            Route::get("/activities/create", [CrmController::class, "activityCreate"])->name("activities.create");
+            Route::get("/reminders", [CrmController::class, "reminders"])->name("reminders");
+            Route::get("/reminders/create", [CrmController::class, "reminderCreate"])->name("reminders.create");
+
+            // AJAX Routes
+            Route::post("/contacts", [CrmController::class, "contactStore"])->name("contacts.store");
+            Route::post("/companies", [CrmController::class, "companyStore"])->name("companies.store");
+            Route::put("/companies/{id}", [CrmController::class, "companyUpdate"])->name("companies.update");
+            Route::post("/activities", [CrmController::class, "activityStore"])->name("activities.store");
+            Route::post("/reminders", [CrmController::class, "reminderStore"])->name("reminders.store");
+            Route::patch("/contacts/{id}/status", [CrmController::class, "updateContactStatus"])->name("contacts.update-status");
+            Route::patch("/reminders/{id}/status", [CrmController::class, "updateReminderStatus"])->name("reminders.update-status");
+            Route::get("/contacts/{id}/json", [CrmController::class, "getContact"])->name("contacts.get");
+            Route::get("/companies/{id}/json", [CrmController::class, "getCompany"])->name("companies.get");
+            Route::get("/search/companies", [CrmController::class, "searchCompanies"])->name("search.companies");
+            Route::get("/search/contacts", [CrmController::class, "searchContacts"])->name("search.contacts");
+            Route::post("/contacts/bulk-update-status", [CrmController::class, "bulkUpdateContactStatus"])->name("contacts.bulk-update-status");
+            Route::delete("/contacts/{id}", [CrmController::class, "deleteContact"])->name("contacts.delete");
+            Route::delete("/companies/{id}", [CrmController::class, "deleteCompany"])->name("companies.delete");
+        });
     });
+
     Route::get("/kanban", [TaskController::class, "kanban"]);
-    Route::get("/gantt", [TaskController::class, "gantt"]);
     Route::post("/todo/set-status", [TaskController::class, "setStatus"]);
     Route::post('/tasks/add-status', [TaskController::class, 'addStatus'])->name('tasks.addStatus');
     Route::post('/tasks/add-workspace', [TaskController::class, 'addWorkSpace'])->name('tasks.addGroup');
@@ -368,10 +424,9 @@ Route::middleware(['auth', 'subscription.required'])->group(function () {
             ])->name("delete");
         });
     Route::get("/kanban", [TaskController::class, "kanban"]);
-    Route::get("/gantt", [TaskController::class, "gantt"]);
     Route::post("/todo/set-status", [TaskController::class, "setStatus"]);
     Route::post('/tasks/add-status', [TaskController::class, 'addStatus'])->name('tasks.addStatus');
-    Route::post('/tasks/add-workspace', [TaskController::class, 'addWorkSpace'])->name('tasks.addGroup');
+    Route::post('/tasks/quick-update-status', [TaskController::class, 'quickUpdateStatus'])->name('tasks.quickUpdateStatus');
     Route::post("/ai", [AiController::class, "ai"]);
 
     Route::get("/update", function () {

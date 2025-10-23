@@ -14,13 +14,13 @@
                     <div class="form-group">
                         <label for="status_class">{{__('Status Class')}}</label>
                         <select class="form-control" id="status_class" name="status_class" required>
-                            <option value="btn-secondary" style="background-color:#6c757d; color:white;">Secondary</option>
-                            <option value="btn-info" style="background-color:#0dcaf0; color:black;">Info</option>
-                            <option value="btn-primary" style="background-color:#0d6efd; color:white;">Primary</option>
-                            <option value="btn-warning" style="background-color:#ffc107; color:black;">Warning</option>
-                            <option value="btn-success" style="background-color:#198754; color:white;">Success</option>
-                            <option value="btn-danger" style="background-color:#dc3545; color:white;">Danger</option>
-                            <option value="btn-dark" style="background-color:#212529; color:white;">Dark</option>
+                            <option value="btn-secondary" style="background-color:#8392ab; color:white;">Secondary</option>
+                            <option value="btn-info" style="background-color:#17c1e8; color:white;">Info</option>
+                            <option value="btn-primary" style="background-color:#667eea; color:white;">Primary</option>
+                            <option value="btn-warning" style="background-color:#fbcf33; color:black;">Warning</option>
+                            <option value="btn-success" style="background-color:#11998e; color:white;">Success</option>
+                            <option value="btn-danger" style="background-color:#ea0606; color:white;">Danger</option>
+                            <option value="btn-dark" style="background-color:#344767; color:white;">Dark</option>
                         </select>
                     </div>
                 </div>
